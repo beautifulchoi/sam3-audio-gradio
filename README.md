@@ -24,9 +24,9 @@ git submodule update --init --recursive
 python -m venv .venv
 source .venv/bin/activate
 
-# Install main Python deps
+# Install main Python deps (requirements are WIP; follow sam-audio for now)
 pip install -r sam-audio/requirements.txt || pip install sam-audio
-pip install -r sam3/requirements.txt
+# sam3 requirements are still being aligned; if needed, mirror packages from sam-audio
 pip install gradio opencv-python-headless yt-dlp torch torchvision torchaudio
 ```
 
