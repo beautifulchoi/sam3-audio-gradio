@@ -9,17 +9,21 @@ Minimal Gradio UI to run SAM3 video masking with either text prompts or point cl
 
 ## Setup
 ```bash
-# Clone and fetch submodules
+# Clone the repo
 git clone https://github.com/beautifulchoi/sam3-audio-gradio.git
 cd sam3-audio-gradio
+
+# Option A: pull submodules (preferred)
 git submodule update --init --recursive
+# Option B: if submodules are missing, clone/install via script
+./download_sam.sh
 
 # (Optional) create and activate a virtual env
 python -m venv .venv
 source .venv/bin/activate
 
 # Install main Python deps
-tpip install -r sam-audio/requirements.txt || pip install sam-audio # if package is available
+pip install -r sam-audio/requirements.txt || pip install sam-audio
 pip install -r sam3/requirements.txt
 pip install gradio opencv-python-headless yt-dlp torch torchvision torchaudio
 ```
