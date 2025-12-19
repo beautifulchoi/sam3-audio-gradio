@@ -2,6 +2,8 @@
 
 Minimal Gradio UI to run SAM3 video masking with either text prompts or point clicks on the first frame. You can upload an MP4 or supply a YouTube URL (auto-downloads, re-encodes to H.264, and downscales to ease GPU load). Outputs are written to `outputs/` as MP4.
 
+> SAM Audio integration is still in progress; current UI covers SAM3 video masking only.
+
 ## Prerequisites
 - Python 3.10+ and `ffmpeg` available on PATH.
 - CUDA GPU recommended; CPU is not tested.
