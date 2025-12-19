@@ -1,0 +1,24 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.so
+
+# Jupyter
+*.ipynb
+.ipynb_checkpoints/
+
+# Environments / tooling
+.env
+.venv
+*.swp
+
+# Outputs and downloads
+outputs/
+downloads/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
