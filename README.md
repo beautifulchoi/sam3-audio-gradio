@@ -52,3 +52,10 @@ Gradio will print a local URL; open it in your browser.
 - YouTube fetch forces H.264/yuv420p, downscales to 720p/15fps, and muxes audio back to keep playback smooth.
 - For point prompts, masks are computed over the whole video using the selected coordinates from the first frame.
 - If you see codec or GPU errors, re-run with smaller videos or adjust downscale FPS/height in `utils/get_youtube.py`.
+
+## TODO
+- [x] Connect SAM3 with Gradio
+- [ ] Support multiple point clicks
+- [ ] Extend with SAM Audio
+- [ ] Integrate SAM3–SAM Audio in Gradio
+- [ ] Automatic dataset extraction tool
