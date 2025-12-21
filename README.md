@@ -9,7 +9,7 @@ Minimal Gradio UI to run SAM3 video masking and **SAM Audio separation** with ei
 
 ## Prerequisites
 - Python 3.10+ and `ffmpeg` available on PATH.
-- CUDA GPU recommended; CPU is not tested.
+- CUDA GPU recommended; CPU is not tested. Note: The SAM Audio Large model requires at least 40GB of GPU memory (tested on a single A6000).
 - Submodules checked out: `sam-audio` and `sam3`.
 
 ## Setup
