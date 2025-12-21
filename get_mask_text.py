@@ -1,10 +1,6 @@
-from utils.load_sam import get_sam
 from sam3.model_builder import build_sam3_video_predictor
-from sam3.visualization_utils import (
-    load_frame,
-    prepare_masks_for_visualization,
-    visualize_formatted_frame_output,
-)
+from sam3.visualization_utils import prepare_masks_for_visualization
+
 import cv2
 import numpy as np
 import torch

@@ -8,7 +8,7 @@ import cv2
 import gradio as gr
 import numpy as np
 import torch
-
+import os
 from utils.get_youtube import download_youtube
 
 
@@ -51,7 +51,7 @@ def _resolve_video_path(uploaded_file, youtube_url: str) -> str:
         downloads = download_youtube(youtube_url.strip(), str(DOWNLOAD_DIR))
         return downloads["video_only"]
 
-    raise ValueError("비디오를 업로드하거나 YouTube URL을 입력하세요.")
+    raise ValueError("Please upload a video or enter a YouTube URL.")
 
 
 def _extract_first_frame(video_path: str) -> np.ndarray:
@@ -59,13 +59,13 @@ def _extract_first_frame(video_path: str) -> np.ndarray:
     ok, frame = cap.read()
     cap.release()
     if not ok or frame is None:
-        raise RuntimeError(f"첫 프레임을 읽을 수 없습니다: {video_path}")
+        raise RuntimeError(f"Could not read the first frame: {video_path}")
     return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
 
 def _format_points(points: List[Tuple[float, float]]) -> str:
     if not points:
-        return "포인트가 없습니다."
+        return "No points."
     return "\n".join([f"{idx + 1}. ({int(x)}, {int(y)})" for idx, (x, y) in enumerate(points)])
 
 
@@ -86,57 +86,57 @@ def load_video(video_file, youtube_url):
 
         video_path = str(Path(video_path).resolve())
         if not Path(video_path).exists():
-            raise RuntimeError(f"비디오 파일이 존재하지 않습니다: {video_path}")
+            raise RuntimeError(f"No video file exist: {video_path}")
 
         frame = _extract_first_frame(video_path)
         h, w = frame.shape[:2]
-        msg = f"✅ 비디오 준비 완료: {video_path} (w={w}, h={h})\n포인트 모드는 프레임을 클릭해 좌표를 추가하세요."
+        msg = f"✅ Video ready: {video_path} (w={w}, h={h})\nIn point mode, click the frame to add coordinates."
         return frame, video_path, [], (h, w), video_path, msg, _format_points([]), frame
     except Exception as e:
-        return None, None, [], None, None, f"❌ 비디오 불러오기 실패: {e}", _format_points([]), None
+        return None, None, [], None, None, f"❌ fail to load the video: {e}", _format_points([]), None
 
 
 def record_point(evt: gr.SelectData, points: List[Tuple[float, float]], frame_hw: Tuple[int, int] | None, frame_image: np.ndarray | None):
     """Append clicked point (x,y) in pixel space and draw a red dot."""
     if frame_hw is None or frame_image is None:
-        return points, _format_points(points), "❌ 비디오를 먼저 불러오세요.", frame_image
+        return points, _format_points(points), "❌ Please load a video first.", frame_image
 
     x, y = (evt.index or (None, None))
     if x is None or y is None:
-        return points, _format_points(points), "❌ 좌표를 읽지 못했습니다. 다시 클릭하세요.", frame_image
+        return points, _format_points(points), "❌ Could not read coordinates. Please click again.", frame_image
 
     new_points = points + [(float(x), float(y))]
     vis = _draw_points_on_frame(frame_image, new_points)
-    return new_points, _format_points(new_points), f"📍 포인트 추가: ({int(x)}, {int(y)})", vis
+    return new_points, _format_points(new_points), f"📍 Point added: ({int(x)}, {int(y)})", vis
 
 
 def clear_points(frame_image: np.ndarray | None):
-    return [], _format_points([]), "🧹 포인트를 모두 지웠습니다.", frame_image
+    return [], _format_points([]), "🧹 All points cleared.", frame_image
 
 
 def run_sam(video_path: str | None, prompt_type: str, text_prompt: str, points: List[Tuple[float, float]]):
     if not video_path:
-        return None, "❌ 비디오를 먼저 불러오세요."
+        return None, "❌ load video first."
 
-    ts = int(time.time())
-    save_path = OUTPUT_DIR / f"sam3_mask_{prompt_type}_{ts}.mp4"
+    video_base = os.path.splitext(os.path.basename(video_path))[0]
+    save_path = OUTPUT_DIR / f"{video_base}_mask.mp4"
 
     try:
         if prompt_type == "text":
             if not text_prompt.strip():
-                raise ValueError("텍스트 프롬프트를 입력하세요.")
+                raise ValueError("Please enter a text prompt.")
             from get_mask_text import get_mask_from_text
             get_mask_from_text(video_path, prompt=text_prompt.strip(), save_path=str(save_path))
-            msg = f"✅ 텍스트 프롬프트 완료. 결과 저장: {save_path}"
+            msg = f"✅ Text prompt complete. Result saved: {save_path}"
         else:
             if not points:
-                raise ValueError("포인트를 한 개 이상 추가하세요.")
+                raise ValueError("Please add at least one point.")
             from get_mask_point import get_mask_from_point
             get_mask_from_point(video_path, point_prompt=points, save_path=str(save_path))
-            msg = f"✅ 포인트 프롬프트 완료. 결과 저장: {save_path}"
+            msg = f"✅ Point prompt complete. Result saved: {save_path}"
     except Exception as e:
         raise e
-        return None, f"❌ 마스크 생성 실패: {e}"
+        return None, f"❌ Mask creation failed: {e}"
 
     return str(save_path), msg
 
@@ -151,15 +151,16 @@ def clear_sam_memory():
             torch.cuda.empty_cache()
             torch.cuda.ipc_collect()
         gc.collect()
-        status = "✅ SAM 메모리 정리 완료" if (cleared_text or cleared_point) else "⚠️ 정리할 메모리가 없습니다"
+        status = "✅ SAM memory cleared." if (cleared_text or cleared_point) else "⚠️ No memory to clear"
     except Exception as e:
-        return f"❌ SAM 메모리 정리 실패: {e}"
+        return f"❌ Failed to clear SAM memory: {e}"
     return status
 
 
 def build_ui():
     with gr.Blocks() as demo:
-        gr.Markdown("### SAM3 Video Masking\n비디오를 업로드하거나 YouTube URL을 입력한 뒤 프롬프트 타입을 선택하세요. 포인트 모드에서는 첫 프레임을 클릭해 좌표를 추가합니다.")
+        gr.Markdown("### SAM3 Video Masking\nUpload a video or enter a YouTube URL, then select a prompt type. In point mode, click the first frame to add coordinates.")
+        status_text = gr.Textbox(label="Status", interactive=False, value="Ready.")
 
         video_path_state = gr.State(value=None)
         points_state = gr.State(value=[])
@@ -169,34 +170,37 @@ def build_ui():
         with gr.Row():
             with gr.Column(scale=1):
                 video_file = gr.Video(
-                    label="비디오 업로드 (MP4)",
+                    label="Video upload (MP4)",
                     sources=["upload"],
                 )
-                youtube_url = gr.Textbox(label="YouTube URL (선택)", placeholder="https://www.youtube.com/...")
-                load_btn = gr.Button("비디오 불러오기 / 다운로드 (비디오 업로드 후 클릭하세요)", variant="secondary")
-                load_status = gr.Markdown("비디오를 불러와 첫 프레임을 확인하세요.")
+
+                youtube_url = gr.Textbox(label="YouTube URL (optional)", placeholder="https://www.youtube.com/...")
+                load_btn = gr.Button("Load / Download video (After upload, click this button)", variant="secondary")
+                load_status = gr.Markdown("Load a video and check the first frame.")
 
                 prompt_type = gr.Radio(
                     ["text", "point"],
                     value="text",
-                    label="프롬프트 타입",
+                    label="Prompt Type",
                 )
-                text_prompt = gr.Textbox(label="텍스트 프롬프트", placeholder="예: person", visible=True)
+                text_prompt = gr.Textbox(label="Text Prompt", placeholder="e.g., person", visible=True)
 
                 point_frame = gr.Image(
-                    label="프레임에서 포인트 클릭 (첫 프레임)",
+                    label="Click points on the first frame",
                     type="numpy",
                     interactive=True,
                     visible=False,
                 )
                 points_display = gr.Markdown(_format_points([]), visible=False)
-                clear_points_btn = gr.Button("포인트 지우기", variant="secondary", visible=False)
-                clear_sam_btn = gr.Button("SAM 메모리 비우기", variant="secondary")
+                clear_points_btn = gr.Button("Clear Points", variant="secondary", visible=False)
+                clear_sam_btn = gr.Button("Clear SAM Memory", variant="secondary")
 
                 submit_btn = gr.Button("Submit", variant="primary")
             with gr.Column(scale=1):
-                result_video = gr.Video(label="마스크 결과", interactive=False)
-                status = gr.Markdown(label="상태")
+                result_video = gr.Video(label="Mask Result", interactive=False)
+                # Show status bar in the output column as well
+                status_text
+                status = gr.Markdown(label="status")
 
         # Toggle UI for text/point prompts
         prompt_type.change(

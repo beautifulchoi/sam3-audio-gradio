@@ -3,6 +3,42 @@ __pycache__/
 *.py[cod]
 *.so
 
+# VSCode
+.vscode/
+
+# Python virtual environments
+.env/
+.venv/
+env/
+venv/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Test outputs
+.pytest_cache/
+htmlcov/
+coverage.xml
+.coverage
+
+# System files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
+desktop.ini
+
+# Secret/config files
+.mypy_cache/
+.pylint.d/
+.idea/
+.history/
+.cache/
+.token
+.secret
+
 # Jupyter
 *.ipynb
 .ipynb_checkpoints/
@@ -22,3 +58,7 @@ downloads/
 # OS
 .DS_Store
 Thumbs.db
+
+*.wav
+sam-audio
+*.pth

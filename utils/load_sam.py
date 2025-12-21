@@ -13,7 +13,7 @@ def get_samaudio():
         return model, processor
     
     except:
-        print("sam audio is not downloaded well. install it or request meta to access the model")
+        print("sam audio is not downloaded well. install it or request META to access the model")
         return 0
 
 def get_sam(input_type='video', device_idx:int=1):
@@ -32,10 +32,10 @@ def get_sam(input_type='video', device_idx:int=1):
         print("sam3 (large) is loaded well")
         return predictor
     except Exception as e:
-        print("sam3 is not downloaded well. install it or request meta to access the model")
+        print("sam3 is not downloaded well. install it or request META to access the model")
         raise e
         #return 0
 
 if __name__ == "__main__":
-    #get_samaudio()
+    get_samaudio()
     get_sam()
