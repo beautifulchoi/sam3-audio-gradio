@@ -151,7 +151,7 @@ with gr.Blocks(title="SAM Audio Separation Demo") as demo:
         outputs=[target_audio, residual_audio, status_text, gr.State()]
     )
 
-    def blend_and_audio(video_file, mask_file, target_audio):
+    def blend_and_audio(video_file, mask_file, target_audio, residual_audio):
         import os
         from utils.video_audio_blend import blend_video_with_mask_and_audio
         # Use the separated (target) audio for blending
