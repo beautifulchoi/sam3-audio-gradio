@@ -14,16 +14,20 @@ def _downscale_video(video_path: str, max_height: int = 720, target_fps: int = 1
     """Downscale video to reduce GPU load (H.264/yuv420p)."""
     src = Path(video_path)
     dst = src.with_name(src.stem + f"_s{max_height}_f{target_fps}.mp4")
-    if dst.exists():
+    # If a previous run left a zero-byte or corrupted file, regenerate it
+    if dst.exists() and dst.stat().st_size > 0:
         return str(dst)
+    if dst.exists():
+        dst.unlink()
 
+    # Use scale width -2 to keep aspect ratio and guarantee even dimensions for H.264
     cmd = [
         "ffmpeg",
         "-y",
         "-i",
         str(src),
         "-vf",
-        f"scale=-1:{max_height}",
+        f"scale=-2:'min({max_height},ih)'",
         "-r",
         str(target_fps),
         "-c:v",

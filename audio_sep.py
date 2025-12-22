@@ -51,7 +51,7 @@ def sep_audio(model, processor, video_file, frames, mask, output_dir="output_sep
         audios=[video_file],
         descriptions=[""],
         masked_videos=processor.mask_videos([frames], [mask]),
-    ).to('cuda')
+    ).to(next(model.parameters()).device)
     with torch.inference_mode():
         result = model.separate(inputs)
 
@@ -85,9 +85,10 @@ def sep_audio(model, processor, video_file, frames, mask, output_dir="output_sep
     return sep, res
 
 if __name__ == "__main__":
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     model = SAMAudio.from_pretrained("facebook/sam-audio-large")
     processor = SAMAudioProcessor.from_pretrained("facebook/sam-audio-large")
-    model = model.eval().cuda()
+    model = model.eval().to(device)
     video_file = "/home/prj/play_sam3_audio/downloads/cUzeq_-hQ-o/cUzeq_-hQ-o_va_s720_f15.mp4"
     mask_file = "/home/prj/play_sam3_audio/outputs/sam3_mask_point_1766141782_mask.mp4"
     f, m = load_input(video_file, mask_file)
